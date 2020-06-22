@@ -1,18 +1,20 @@
 package conf
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"reflect"
-	"strconv"
 )
 
-const tagName = "conf"
+const (
+	tagConf = "conf"
+	tagJson = "json"
+)
+
 
 type Values interface {
 	GetConfig() map[string]string
-	SetConfig(interface{})
+	SetConfig(interface{}, map[string]interface{})
 }
 
 type values struct{
@@ -25,9 +27,9 @@ type values struct{
 func NewConf() Values {
 	c := new(values)
 	c.Needed = []string{
-		"vault.url",
-		"vault.path",
-		"vault.token",
+		"VAULT.URL",
+		"VAULT.PATH",
+		"VAULT.TOKEN",
 	}
 
 	for _,v := range c.Needed{
@@ -37,9 +39,9 @@ func NewConf() Values {
 		}
 	}
 
-	c.Url = os.Getenv("vault.url")
-	c.Path = os.Getenv("vault.path")
-	c.Token =  os.Getenv("vault.token")
+	c.Url = os.Getenv("VAULT.URL")
+	c.Path = os.Getenv("VAULT.PATH")
+	c.Token =  os.Getenv("VAULT.TOKEN")
 	return c
 }
 
@@ -51,36 +53,18 @@ func (c values) GetConfig() map[string]string{
 	return storage
 }
 
-func (c values) SetConfig(confStruct interface{}){
+func (c values) SetConfig(confStruct interface{}, vaultResponse map[string]interface{}){
 	t := reflect.TypeOf(confStruct)
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
-		fieldName := field.Tag.Get(tagName)
-		if fieldName == ""{
+		fieldConf := field.Tag.Get(tagConf)
+		filedJson := field.Tag.Get(tagJson)
+
+		if fieldConf == ""{
 			log.Fatalf("Invalid fieldName...")
 		}
-
-		switch reflect.ValueOf(confStruct).Field(i).Kind() {
-		case reflect.Float32, reflect.Float64:
-			value := reflect.ValueOf(confStruct).Field(i).Float()
-			log.Printf("--float-- [%v]:%v \n", fieldName, value)
-
-			valueStr := fmt.Sprintf("%.2f", value)
-			_ = os.Setenv(fieldName, valueStr)
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			value := reflect.ValueOf(confStruct).Field(i).Int()
-			log.Printf("--int-- [%v]:%v \n", fieldName, value)
-
-			valueStr := strconv.FormatInt(value, 10)
-			_ = os.Setenv(fieldName, valueStr)
-		case reflect.String:
-			value := reflect.ValueOf(confStruct).Field(i).String()
-			log.Printf("--string-- [%v]:%v \n", fieldName, value)
-
-			_ = os.Setenv(fieldName, value)
-		default:
-			log.Fatal("type not match")
-		}
+		log.Printf("--int-- [%v]:%v \n", fieldConf, vaultResponse[filedJson])
+		_ = os.Setenv(fieldConf, vaultResponse[filedJson].(string))
 	}
 }
 

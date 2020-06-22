@@ -9,7 +9,7 @@ import (
 )
 
 type Client interface {
-	LodConfig() (interface{},error)
+	LodConfig() (map[string]interface{},error)
 }
 
 type client struct{
@@ -24,12 +24,20 @@ func NewClient(conf conf.Values, resultStructure interface{}) Client {
 	}
 }
 
-func (c *client) LodConfig() (interface{},error){
+type VaultResponse struct {
+	Data Data `json:"data"`
+}
+
+type Data struct {
+	Data interface{} `json:"data"`
+}
+
+func (c *client) LodConfig() (map[string]interface{},error){
 	config := c.conf.GetConfig()
-	url := fmt.Sprintf("%v/data/%v", config["vault.url"], config["vault.path"]) //v2 only
+	url := fmt.Sprintf("%v/data/%v", config["VAULT.URL"], config["VAULT.PATH"]) //support v2 only
 	fmt.Print("url : " + url)
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
-	request.Header.Set("X-Vault-Token", config["vault.token"])
+	request.Header.Set("X-Vault-Token", config["VAULT.TOKEN"])
 	cli := &http.Client{
 		Timeout: 30 * time.Second,
 	}
@@ -39,8 +47,11 @@ func (c *client) LodConfig() (interface{},error){
 		return nil, err
 	}
 
-	if err := json.NewDecoder(result.Body).Decode(&c.resultStructure); err != nil {
+	var resp VaultResponse
+	resp.Data.Data = c.resultStructure
+
+	if err := json.NewDecoder(result.Body).Decode(&resp); err != nil {
 		return nil, err
 	}
-	return c.resultStructure, nil
+	return resp.Data.Data.(map[string]interface{}), nil
 }
