@@ -18,6 +18,35 @@ VAULT.TOKEN=s.xxxxxxXxxxx
 Code example
 
 ```go
+
+package main
+
+import (
+	"fmt"
+	"github.com/joho/godotenv"
+	"github.com/rkritchat/vault-client/pkg/conf"
+	"github.com/rkritchat/vault-client/pkg/vault"
+	"os"
+)
+
+//Create Configuration struct, Tag conf is ENV key that will set to envrionment variable.
+type Configuration struct {
+	DatabaseUrl string `json:"database.url" conf:"DATABASE.DB_NAME"`
+	DatabaseUser string `json:"database.user" conf:"DATABASE.USER"`
+	DatabasePwd string `json:"database.pwd" conf:"DATABASE.PWD"`
+}
+
+func main(){
+	_ = godotenv.Load() //read VAULT.URL | VAULT.PATH | VAULT.TOKEN
+	_ = vault.NewVault(conf.Default(), Configuration{})
+	fmt.Printf("%v | %v | %v", os.Getenv("DATABASE.DB_NAME"), os.Getenv("DATABASE.USER"),os.Getenv("DATABASE.PWD"))
+}
+
+```
+
+Vault - Client support reload configuration from Vault.
+
+```go
 package main
 
 import (
@@ -41,7 +70,7 @@ func main(){
 
 	router := chi.NewRouter()
 	router.Get("/test", test)
-	router.Get("/reload", vaultClient.Reload()) //path reload
+	router.Get("/reload", vaultClient.Reload()) //change me
 
 	http.ListenAndServe(":9991", router)
 }
