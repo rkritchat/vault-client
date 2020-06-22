@@ -13,7 +13,7 @@ const (
 
 type Values interface {
 	GetConfig() map[string]string
-	SetConfig(interface{}, map[string]interface{})
+	SetConfig(interface{}, map[string]interface{}) []string
 }
 
 type values struct {
@@ -52,8 +52,9 @@ func (c values) GetConfig() map[string]string {
 	return storage
 }
 
-func (c values) SetConfig(confStruct interface{}, vaultResponse map[string]interface{}) {
+func (c values) SetConfig(confStruct interface{}, vaultResponse map[string]interface{}) []string {
 	t := reflect.TypeOf(confStruct)
+	change := make([]string, t.NumField())
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		fieldConf := field.Tag.Get(tagConf)
@@ -62,6 +63,11 @@ func (c values) SetConfig(confStruct interface{}, vaultResponse map[string]inter
 		if fieldConf == "" {
 			log.Fatalf("Invalid fieldName...")
 		}
-		_ = os.Setenv(fieldConf, vaultResponse[filedJson].(string))
+
+		if os.Getenv(fieldConf) != vaultResponse[filedJson].(string) {
+			_ = os.Setenv(fieldConf, vaultResponse[filedJson].(string))
+			change[i] = fieldConf
+		}
 	}
+	return change
 }

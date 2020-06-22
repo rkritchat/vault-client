@@ -9,10 +9,10 @@ import (
 )
 
 type VaultClient interface {
-	LodConfig(interface{}) (map[string]interface{},error)
+	LodeConfig(interface{}) (map[string]interface{}, error)
 }
 
-type vaultClient struct{
+type vaultClient struct {
 	conf conf.Values
 }
 
@@ -30,7 +30,7 @@ type Data struct {
 	Data interface{} `json:"data"`
 }
 
-func (c *vaultClient) LodConfig(resultStructure interface{}) (map[string]interface{},error){
+func (c *vaultClient) LodeConfig(resultStructure interface{}) (map[string]interface{}, error) {
 	config := c.conf.GetConfig()
 	url := fmt.Sprintf("%v/data/%v", config["VAULT.URL"], config["VAULT.PATH"]) //support v2 only
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
@@ -40,7 +40,7 @@ func (c *vaultClient) LodConfig(resultStructure interface{}) (map[string]interfa
 	}
 
 	result, err := cli.Do(request)
-	if err!=nil{
+	if err != nil {
 		return nil, err
 	}
 
