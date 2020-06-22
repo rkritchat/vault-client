@@ -26,10 +26,10 @@ func NewClient(conf conf.Values, resultStructure interface{}) Client {
 
 func (c *client) LodConfig() (interface{},error){
 	config := c.conf.GetConfig()
-	url := fmt.Sprintf("%v/data/%v", config["url"], config["path"]) //v2 only
+	url := fmt.Sprintf("%v/data/%v", config["vault.url"], config["vault.path"]) //v2 only
 	fmt.Print("url : " + url)
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
-	request.Header.Set("X-Vault-Token", config["token"])
+	request.Header.Set("X-Vault-Token", config["vault.token"])
 	cli := &http.Client{
 		Timeout: 30 * time.Second,
 	}

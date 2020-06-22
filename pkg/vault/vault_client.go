@@ -5,9 +5,9 @@ import (
 	"github.com/rkritchat/vault-client/pkg/conf"
 )
 
-func NewVault(){
+func NewVault(i interface{}){
 	c := conf.NewConf()
-	cli := client.NewClient(c, nil)
+	cli := client.NewClient(c, i)
 	config, err := cli.LodConfig()
 	if err!=nil{
 
