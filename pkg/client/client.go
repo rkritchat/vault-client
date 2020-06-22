@@ -33,7 +33,6 @@ type Data struct {
 func (c *vaultClient) LodConfig(resultStructure interface{}) (map[string]interface{},error){
 	config := c.conf.GetConfig()
 	url := fmt.Sprintf("%v/data/%v", config["VAULT.URL"], config["VAULT.PATH"]) //support v2 only
-	fmt.Print("url : " + url)
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
 	request.Header.Set("X-Vault-Token", config["VAULT.TOKEN"])
 	cli := &http.Client{
