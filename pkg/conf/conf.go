@@ -49,7 +49,7 @@ func (c values) GetConfig() map[string]string{
 	storage := make(map[string]string)
 	storage[c.Needed[0]] = c.Url
 	storage[c.Needed[1]] = c.Path
-	storage[c.Needed[2]] = c.Url
+	storage[c.Needed[2]] = c.Token
 	return storage
 }
 
