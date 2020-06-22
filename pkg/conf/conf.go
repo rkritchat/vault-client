@@ -11,7 +11,6 @@ const (
 	tagJson = "json"
 )
 
-
 type Values interface {
 	GetConfig() map[string]string
 	SetConfig(interface{}, map[string]interface{})
@@ -24,7 +23,7 @@ type values struct{
 	Token string
 }
 
-func NewConf() Values {
+func Default() Values {
 	c := new(values)
 	c.Needed = []string{
 		"VAULT.URL",

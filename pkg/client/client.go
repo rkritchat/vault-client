@@ -8,16 +8,16 @@ import (
 	"time"
 )
 
-type Client interface {
+type VaultClient interface {
 	LodConfig(interface{}) (map[string]interface{},error)
 }
 
-type client struct{
+type vaultClient struct{
 	conf conf.Values
 }
 
-func NewClient(conf conf.Values) Client {
-	return &client{
+func NewClient(conf conf.Values) VaultClient {
+	return &vaultClient{
 		conf: conf,
 	}
 }
@@ -30,7 +30,7 @@ type Data struct {
 	Data interface{} `json:"data"`
 }
 
-func (c *client) LodConfig(resultStructure interface{}) (map[string]interface{},error){
+func (c *vaultClient) LodConfig(resultStructure interface{}) (map[string]interface{},error){
 	config := c.conf.GetConfig()
 	url := fmt.Sprintf("%v/data/%v", config["VAULT.URL"], config["VAULT.PATH"]) //support v2 only
 	fmt.Print("url : " + url)
