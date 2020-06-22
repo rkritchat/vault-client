@@ -8,8 +8,8 @@ import (
 
 func NewVault(i interface{}){
 	c := conf.NewConf()
-	cli := client.NewClient(c, i)
-	vaultResponse, err := cli.LodConfig()
+	cli := client.NewClient(c)
+	vaultResponse, err := cli.LodConfig(i)
 	if err!=nil{
 		log.Fatal(err)
 	}
