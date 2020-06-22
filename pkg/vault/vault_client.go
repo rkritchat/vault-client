@@ -39,7 +39,11 @@ func (v vault) Reload() func(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write([]byte("Reload config Exception"))
 		} else {
 			change := v.value.SetConfig(v.i, config)
-			_, _ = w.Write([]byte(strings.Join(change, " | ")))
+			if change != nil {
+				_, _ = w.Write([]byte(strings.Join(change, " | ")))
+				return
+			}
+			_, _ = w.Write([]byte("No Configuration Change."))
 		}
 	}
 }

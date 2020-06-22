@@ -54,7 +54,7 @@ func (c values) GetConfig() map[string]string {
 
 func (c values) SetConfig(confStruct interface{}, vaultResponse map[string]interface{}) []string {
 	t := reflect.TypeOf(confStruct)
-	change := make([]string, t.NumField())
+	var change []string
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		fieldConf := field.Tag.Get(tagConf)
@@ -66,7 +66,10 @@ func (c values) SetConfig(confStruct interface{}, vaultResponse map[string]inter
 
 		if os.Getenv(fieldConf) != vaultResponse[filedJson].(string) {
 			_ = os.Setenv(fieldConf, vaultResponse[filedJson].(string))
-			change[i] = fieldConf
+			if change == nil {
+				change = make([]string, t.NumField())
+			}
+			change[i] = filedJson
 		}
 	}
 	return change
