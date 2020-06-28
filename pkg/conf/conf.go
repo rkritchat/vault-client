@@ -64,6 +64,10 @@ func (c values) SetConfig(confStruct interface{}, vaultResponse map[string]inter
 			log.Fatalf("Invalid fieldName...")
 		}
 
+		if vaultResponse[filedJson] == nil {
+			log.Fatalf("Not found config [%v] in vault", filedJson)
+		}
+
 		if os.Getenv(fieldConf) != vaultResponse[filedJson].(string) {
 			_ = os.Setenv(fieldConf, vaultResponse[filedJson].(string))
 			if change == nil {
