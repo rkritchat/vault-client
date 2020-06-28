@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/rkritchat/vault-client/pkg/conf"
+	"github.com/rkritchat/vault-client/pkg/constant"
 	"log"
 	"net/http"
 	"time"
@@ -33,9 +34,9 @@ type Data struct {
 
 func (c *vaultClient) LodeConfig(resultStructure interface{}) (map[string]interface{}, error) {
 	config := c.conf.GetConfig()
-	url := fmt.Sprintf("%v/v1/secret/data/%v", config["VAULT.URL"], config["VAULT.PATH"]) //support v2 only
+	url := fmt.Sprintf("%v/v1/secret/data/%v", config[constant.VaultURL], config[constant.VaultPath]) //support v2 only
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
-	request.Header.Set("X-Vault-Token", config["VAULT.TOKEN"])
+	request.Header.Set(constant.XVaultToken, config[constant.VaultToken])
 	cli := &http.Client{
 		Timeout: 30 * time.Second,
 	}

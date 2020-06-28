@@ -3,6 +3,7 @@ package vault
 import (
 	"github.com/rkritchat/vault-client/pkg/client"
 	"github.com/rkritchat/vault-client/pkg/conf"
+	"github.com/rkritchat/vault-client/pkg/constant"
 	"log"
 	"net/http"
 	"os"
@@ -20,7 +21,7 @@ type vault struct {
 
 func NewVault(value conf.Values, i interface{}) Vault {
 	vaultClient := client.NewClient(value)
-	if os.Getenv("VAULT.DISABLE") == "" || os.Getenv("VAULT.DISABLE") == "false" {
+	if os.Getenv(constant.VaultDisable) == constant.Empty || os.Getenv(constant.VaultDisable) == constant.False {
 		if response, err := vaultClient.LodeConfig(i); err != nil {
 			log.Fatal(err)
 		} else {
@@ -36,7 +37,7 @@ func NewVault(value conf.Values, i interface{}) Vault {
 
 func (v vault) Reload() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if os.Getenv("VAULT.DISABLE") == "true" {
+		if os.Getenv(constant.VaultDisable) == constant.True {
 			_, _ = w.Write([]byte("vault-client is not enable."))
 			return
 		}

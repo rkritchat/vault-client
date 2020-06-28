@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"github.com/rkritchat/vault-client/pkg/constant"
 	"log"
 	"os"
 	"reflect"
@@ -26,9 +27,9 @@ type values struct {
 func Default() Values {
 	c := new(values)
 	c.Needed = []string{
-		"VAULT.URL",
-		"VAULT.PATH",
-		"VAULT.TOKEN",
+		constant.VaultURL,
+		constant.VaultPath,
+		constant.VaultToken,
 	}
 
 	for _, v := range c.Needed {
@@ -38,9 +39,9 @@ func Default() Values {
 		}
 	}
 
-	c.Url = os.Getenv("VAULT.URL")
-	c.Path = os.Getenv("VAULT.PATH")
-	c.Token = os.Getenv("VAULT.TOKEN")
+	c.Url = os.Getenv(constant.VaultURL)
+	c.Path = os.Getenv(constant.VaultPath)
+	c.Token = os.Getenv(constant.VaultToken)
 	return c
 }
 
@@ -60,17 +61,17 @@ func (c values) SetConfig(confStruct interface{}, vaultResponse map[string]inter
 		fieldConf := field.Tag.Get(tagConf)
 		filedJson := field.Tag.Get(tagJson)
 
-		if fieldConf == "" {
-			log.Fatalf("Invalid fieldName...")
+		if fieldConf == constant.Empty {
+			log.Fatalf("Tag conf is required.")
 		}
 
 		if vaultResponse[filedJson] == nil {
-			log.Fatalf("Not found config [%v] in vault", filedJson)
+			log.Fatalf("Not found config [%v] in Vault", filedJson)
 		}
 
 		if os.Getenv(fieldConf) != vaultResponse[filedJson].(string) {
 			_ = os.Setenv(fieldConf, vaultResponse[filedJson].(string))
-			change += filedJson + " "
+			change += filedJson + constant.Space
 		}
 	}
 	return change
