@@ -39,7 +39,7 @@ func (v vault) Reload() func(w http.ResponseWriter, r *http.Request) {
 		} else {
 			change := v.value.SetConfig(v.i, config)
 			if change != "" {
-				_, _ = w.Write([]byte("[" + change + "]"))
+				_, _ = w.Write([]byte("[" + change[:len(change)-1] + "]"))
 				return
 			}
 			_, _ = w.Write([]byte("[]"))
