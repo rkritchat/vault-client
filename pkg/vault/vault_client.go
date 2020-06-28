@@ -5,6 +5,7 @@ import (
 	"github.com/rkritchat/vault-client/pkg/conf"
 	"log"
 	"net/http"
+	"os"
 )
 
 type Vault interface {
@@ -19,10 +20,12 @@ type vault struct {
 
 func NewVault(value conf.Values, i interface{}) Vault {
 	vaultClient := client.NewClient(value)
-	if response, err := vaultClient.LodeConfig(i); err != nil {
-		log.Fatal(err)
-	} else {
-		_ = value.SetConfig(i, response)
+	if os.Getenv("VAULT.DISABLE") == "" || os.Getenv("VAULT.DISABLE") == "false" {
+		if response, err := vaultClient.LodeConfig(i); err != nil {
+			log.Fatal(err)
+		} else {
+			_ = value.SetConfig(i, response)
+		}
 	}
 	return &vault{
 		i:           i,
@@ -33,6 +36,11 @@ func NewVault(value conf.Values, i interface{}) Vault {
 
 func (v vault) Reload() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if os.Getenv("VAULT.DISABLE") == "true" {
+			_, _ = w.Write([]byte("vault-client is not enable."))
+			return
+		}
+
 		config, err := v.vaultClient.LodeConfig(v.i)
 		if err != nil {
 			_, _ = w.Write([]byte("Reload config Exception"))
