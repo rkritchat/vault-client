@@ -9,11 +9,11 @@ go get -u github.com/rkritchat/vault-client
 ## Usage
 Add Vault information to your configuration. (`.env`) file:
 
-```shell
-VAULT.URL=http://127.0.0.1:8200
-VAULT.PATH=test  //your secret path
-VAULT.TOKEN=s.xxxxxxXxxxx
-VAULT.DISABLE=false  //optional make it true for disable vault-client and read configuration from env file instead
+```sh
+VAULT.URL=http://127.0.0.1:8200.  #Vault URL
+VAULT.PATH=test-vault-client      #Secret path
+VAULT.TOKEN=s.xxxxxxXxxxx         #Vault token for access kv
+VAULT.DISABLE=false               #Optional make it "true" for disable vault-client and read configuration from env file instead
 ```
 
 List Vault Keys/Values by using vault kv get ${secret_path}
