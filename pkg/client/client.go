@@ -54,7 +54,7 @@ func (c *vaultClient) LodeConfig(resultStructure interface{}) (map[string]interf
 	}
 
 	if result.StatusCode != 200 {
-		log.Fatalf("Response not ok, %v\n", result.StatusCode)
+		log.Fatalf("Vault response status code not ok, [%v]\n", result.StatusCode)
 	}
 
 	var resp VaultResponse
