@@ -88,14 +88,14 @@ func main(){
 	vaultClient := vault.NewVault(conf.Default(), Configuration{})
 
 	router := chi.NewRouter()
-	router.Get("/test", test)
+	router.Get("/show", show)
 	router.Get("/reload", vaultClient.Reload()) //change me
 
 	http.ListenAndServe(":9991", router)
 }
 
-func test(w http.ResponseWriter, r *http.Request){
-  //show env variable here.
+func show(w http.ResponseWriter, r *http.Request){
+        //show env variable here.
 	w.Write([]byte(os.Getenv("DATABASE.URL")  + " | " + os.Getenv("DATABASE.USER") + " | " + os.Getenv("DATABASE.PWD")))
 }
 
