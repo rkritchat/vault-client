@@ -5,7 +5,6 @@ import (
 	"github.com/rkritchat/vault-client/pkg/conf"
 	"log"
 	"net/http"
-	"strings"
 )
 
 type Vault interface {
@@ -39,11 +38,11 @@ func (v vault) Reload() func(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write([]byte("Reload config Exception"))
 		} else {
 			change := v.value.SetConfig(v.i, config)
-			if change != nil {
-				_, _ = w.Write([]byte(strings.Join(change, " | ")))
+			if change != "" {
+				_, _ = w.Write([]byte("[" + change + "]"))
 				return
 			}
-			_, _ = w.Write([]byte("No Configuration Change."))
+			_, _ = w.Write([]byte("[]"))
 		}
 	}
 }
