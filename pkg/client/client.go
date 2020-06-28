@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/rkritchat/vault-client/pkg/conf"
+	"log"
 	"net/http"
 	"time"
 )
@@ -32,7 +33,7 @@ type Data struct {
 
 func (c *vaultClient) LodeConfig(resultStructure interface{}) (map[string]interface{}, error) {
 	config := c.conf.GetConfig()
-	url := fmt.Sprintf("%v/data/%v", config["VAULT.URL"], config["VAULT.PATH"]) //support v2 only
+	url := fmt.Sprintf("%v/v1/secret/data/%v", config["VAULT.URL"], config["VAULT.PATH"]) //support v2 only
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
 	request.Header.Set("X-Vault-Token", config["VAULT.TOKEN"])
 	cli := &http.Client{
@@ -40,8 +41,20 @@ func (c *vaultClient) LodeConfig(resultStructure interface{}) (map[string]interf
 	}
 
 	result, err := cli.Do(request)
+	if result != nil {
+		defer func() {
+			if err := result.Body.Close(); err != nil {
+				log.Fatal("Exception while close body")
+			}
+		}()
+	}
+
 	if err != nil {
 		return nil, err
+	}
+
+	if result.StatusCode != 200 {
+		log.Fatalf("Response not ok, %v\n", result.StatusCode)
 	}
 
 	var resp VaultResponse
