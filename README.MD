@@ -13,6 +13,7 @@ Add Vault information to your configuration. (`.env`) file:
 VAULT.URL=http://127.0.0.1:8200
 VAULT.PATH=test  //your secret path
 VAULT.TOKEN=s.xxxxxxXxxxx
+VAULT.DISABLE=false  //optional make it true for disable vault-client and read configuration from env file instead
 ```
 
 List Vault Keys/Values by using vault kv get ${secret_path}
