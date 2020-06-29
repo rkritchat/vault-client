@@ -56,7 +56,10 @@ type Configuration struct {
 
 func main(){
 	_ = godotenv.Load() //read VAULT.URL | VAULT.PATH | VAULT.TOKEN
-	_ = vault.NewVault(conf.Default(), Configuration{})
+	_, err := vault.NewVault(vault.DefaultConfig, Configuration{})
+	if err!=nil{
+	    log.Fatal(err)
+	}
 	fmt.Printf("%v | %v | %v", os.Getenv("DATABASE.URL"), os.Getenv("DATABASE.USER"),os.Getenv("DATABASE.PWD"))
 }
 
@@ -85,12 +88,14 @@ type Configuration struct {
 
 func main(){
 	_ = godotenv.Load() //read VAULT.URL | VAULT.PATH | VAULT.TOKEN
-	vaultClient := vault.NewVault(conf.Default(), Configuration{})
-
+	vaultClient, err := vault.NewVault(vault.DefaultConfig, Configuration{})
+	if err!=nil{
+	    log.Fatal(err)
+	}
 	router := chi.NewRouter()
 	router.Get("/show", show)
 	router.Get("/reload", vaultClient.Reload()) //change me
-
+	
 	http.ListenAndServe(":9991", router)
 }
 
