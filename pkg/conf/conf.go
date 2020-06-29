@@ -1,8 +1,8 @@
 package conf
 
 import (
+	"errors"
 	"github.com/rkritchat/vault-client/pkg/constant"
-	"log"
 	"os"
 	"reflect"
 )
@@ -12,9 +12,20 @@ const (
 	tagJson = "json"
 )
 
+var (
+	//error
+	tagConfIsRequired = errors.New("tag conf is required")
+	notFoundConfig    = func(param string) error {
+		return errors.New("not found config [" + param + "] in Vault")
+	}
+	missingMandatoryConf = func(param string) error {
+		return errors.New("[" + param + "] is required")
+	}
+)
+
 type Values interface {
 	GetConfig() map[string]string
-	SetConfig(interface{}, map[string]interface{}) string
+	SetConfig(interface{}, map[string]interface{}) (string, error)
 }
 
 type values struct {
@@ -24,7 +35,7 @@ type values struct {
 	Token  string
 }
 
-func Default() Values {
+func Default() (Values, error) {
 	c := new(values)
 	c.Needed = []string{
 		constant.VaultURL,
@@ -34,15 +45,14 @@ func Default() Values {
 
 	for _, v := range c.Needed {
 		if os.Getenv(v) == "" {
-			log.Fatalf("%v is required", v)
-			return nil
+			return nil, missingMandatoryConf(v)
 		}
 	}
 
 	c.Url = os.Getenv(constant.VaultURL)
 	c.Path = os.Getenv(constant.VaultPath)
 	c.Token = os.Getenv(constant.VaultToken)
-	return c
+	return c, nil
 }
 
 func (c values) GetConfig() map[string]string {
@@ -53,7 +63,7 @@ func (c values) GetConfig() map[string]string {
 	return storage
 }
 
-func (c values) SetConfig(confStruct interface{}, vaultResponse map[string]interface{}) string {
+func (c values) SetConfig(confStruct interface{}, vaultResponse map[string]interface{}) (string, error) {
 	t := reflect.TypeOf(confStruct)
 	change := ""
 	for i := 0; i < t.NumField(); i++ {
@@ -62,11 +72,11 @@ func (c values) SetConfig(confStruct interface{}, vaultResponse map[string]inter
 		filedJson := field.Tag.Get(tagJson)
 
 		if fieldConf == constant.Empty {
-			log.Fatalf("Tag conf is required.")
+			return "", tagConfIsRequired
 		}
 
 		if vaultResponse[filedJson] == nil {
-			log.Fatalf("Not found config [%v] in Vault", filedJson)
+			return "", notFoundConfig(filedJson)
 		}
 
 		if os.Getenv(fieldConf) != vaultResponse[filedJson].(string) {
@@ -74,5 +84,5 @@ func (c values) SetConfig(confStruct interface{}, vaultResponse map[string]inter
 			change += filedJson + constant.Space
 		}
 	}
-	return change
+	return change, nil
 }

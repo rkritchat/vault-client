@@ -2,11 +2,13 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/rkritchat/vault-client/pkg/conf"
 	"github.com/rkritchat/vault-client/pkg/constant"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -32,6 +34,12 @@ type Data struct {
 	Data interface{} `json:"data"`
 }
 
+var (
+	vaultStatusCodNotOk = func(param int) error {
+		return errors.New("vault response status code not ok, status code[" + strconv.Itoa(param) + "]")
+	}
+)
+
 func (c *vaultClient) LodeConfig(resultStructure interface{}) (map[string]interface{}, error) {
 	config := c.conf.GetConfig()
 	url := fmt.Sprintf("%v/v1/secret/data/%v", config[constant.VaultURL], config[constant.VaultPath]) //support v2 only
@@ -55,7 +63,7 @@ func (c *vaultClient) LodeConfig(resultStructure interface{}) (map[string]interf
 	}
 
 	if result.StatusCode != 200 {
-		log.Fatalf("Vault response status code not ok, [%v]\n", result.StatusCode)
+		return nil, vaultStatusCodNotOk(result.StatusCode)
 	}
 
 	var resp VaultResponse

@@ -19,20 +19,23 @@ type vault struct {
 	vaultClient client.VaultClient
 }
 
-func NewVault(value conf.Values, i interface{}) Vault {
+func NewVault(value conf.Values, i interface{}) (Vault, error) {
 	vaultClient := client.NewClient(value)
 	if os.Getenv(constant.VaultDisable) == constant.Empty || os.Getenv(constant.VaultDisable) == constant.False {
 		if response, err := vaultClient.LodeConfig(i); err != nil {
 			log.Fatal(err)
 		} else {
-			_ = value.SetConfig(i, response)
+			_, err = value.SetConfig(i, response)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	return &vault{
 		i:           i,
 		value:       value,
 		vaultClient: vaultClient,
-	}
+	}, nil
 }
 
 func (v vault) Reload() func(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +49,14 @@ func (v vault) Reload() func(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			_, _ = w.Write([]byte("Reload config Exception"))
 		} else {
-			change := v.value.SetConfig(v.i, config)
+			change, err := v.value.SetConfig(v.i, config)
+
+			if err != nil {
+				log.Printf("Err %v", err)
+				_, _ = w.Write([]byte("Exception occurred while reload config"))
+				return
+			}
+
 			if change != "" {
 				_, _ = w.Write([]byte("[" + change[:len(change)-1] + "]"))
 				return
