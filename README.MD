@@ -9,10 +9,11 @@ go get -u github.com/rkritchat/vault-client
 ## Usage
 Add Vault information to your configuration. (`.env`) file:
 
-```shell
-VAULT.URL=http://127.0.0.1:8200
-VAULT.PATH=test  //your secret path
-VAULT.TOKEN=s.xxxxxxXxxxx
+```sh
+VAULT.URL=http://127.0.0.1:8200   #Vault URL
+VAULT.PATH=test-vault-client      #Secret path
+VAULT.TOKEN=s.xxxxxxXxxxx         #Vault token for access kv
+VAULT.DISABLE=false               #Optional make it "true" for disable vault-client and read configuration from env file instead
 ```
 
 List Vault Keys/Values by using vault kv get ${secret_path}
@@ -87,14 +88,14 @@ func main(){
 	vaultClient := vault.NewVault(conf.Default(), Configuration{})
 
 	router := chi.NewRouter()
-	router.Get("/test", test)
+	router.Get("/show", show)
 	router.Get("/reload", vaultClient.Reload()) //change me
 
 	http.ListenAndServe(":9991", router)
 }
 
-func test(w http.ResponseWriter, r *http.Request){
-  //show env variable here.
+func show(w http.ResponseWriter, r *http.Request){
+        //show env variable here.
 	w.Write([]byte(os.Getenv("DATABASE.URL")  + " | " + os.Getenv("DATABASE.USER") + " | " + os.Getenv("DATABASE.PWD")))
 }
 
