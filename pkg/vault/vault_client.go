@@ -19,13 +19,17 @@ type vault struct {
 	vaultClient client.VaultClient
 }
 
-func NewVault(value conf.Values, i interface{}) (Vault, error) {
-	vaultClient := client.NewClient(value)
+func NewVault(initValues func() (conf.Values, error), i interface{}) (Vault, error) {
+	values, err := initValues()
+	if err != nil {
+		return nil, err
+	}
+	vaultClient := client.NewClient(values)
 	if os.Getenv(constant.VaultDisable) == constant.Empty || os.Getenv(constant.VaultDisable) == constant.False {
 		if response, err := vaultClient.LodeConfig(i); err != nil {
 			log.Fatal(err)
 		} else {
-			_, err = value.SetConfig(i, response)
+			_, err = values.SetConfig(i, response)
 			if err != nil {
 				return nil, err
 			}
@@ -33,7 +37,7 @@ func NewVault(value conf.Values, i interface{}) (Vault, error) {
 	}
 	return &vault{
 		i:           i,
-		value:       value,
+		value:       values,
 		vaultClient: vaultClient,
 	}, nil
 }
@@ -64,4 +68,12 @@ func (v vault) Reload() func(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write([]byte("[]"))
 		}
 	}
+}
+
+func (v vault) DefaultConfig() (conf.Values, error) {
+	defaultValue, err := conf.Default()
+	if err != nil {
+		return nil, err
+	}
+	return defaultValue, nil
 }

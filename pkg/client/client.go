@@ -20,10 +20,8 @@ type vaultClient struct {
 	conf conf.Values
 }
 
-func NewClient(conf conf.Values) VaultClient {
-	return &vaultClient{
-		conf: conf,
-	}
+func NewClient(c conf.Values) VaultClient {
+	return &vaultClient{conf: c}
 }
 
 type VaultResponse struct {
