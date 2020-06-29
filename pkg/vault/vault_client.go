@@ -27,7 +27,7 @@ func NewVault(initValues func() (conf.Values, error), i interface{}) (Vault, err
 	vaultClient := client.NewClient(values)
 	if os.Getenv(constant.VaultDisable) == constant.Empty || os.Getenv(constant.VaultDisable) == constant.False {
 		if response, err := vaultClient.LodeConfig(i); err != nil {
-			log.Fatal(err)
+			return nil, err
 		} else {
 			_, err = values.SetConfig(i, response)
 			if err != nil {
