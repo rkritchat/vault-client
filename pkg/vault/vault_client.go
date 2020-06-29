@@ -70,7 +70,7 @@ func (v vault) Reload() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (v vault) DefaultConfig() (conf.Values, error) {
+func DefaultConfig() (conf.Values, error) {
 	defaultValue, err := conf.Default()
 	if err != nil {
 		return nil, err
