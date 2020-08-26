@@ -1,4 +1,4 @@
-package vault_client
+package conf
 
 import (
 	"errors"
@@ -24,44 +24,29 @@ type Config interface {
 }
 
 type config struct {
-	Keys  []string
 	Url   string
 	Path  string
 	Token string
 }
 
-func NewConfig() (Config, error) {
+func NewConfig() Config {
 	c := new(config)
-	c.Keys = []string{vaultURL, vaultPath, vaultToken}
-	err := validateConfig(c)
-	if err != nil {
-		return nil, err
-	}
-
 	c.Url = os.Getenv(vaultURL)
 	c.Path = os.Getenv(vaultPath)
 	c.Token = os.Getenv(vaultToken)
-	return c, nil
-}
-
-func validateConfig(c *config) error {
-	for _, v := range c.Keys {
-		if os.Getenv(v) == empty {
-			return errors.New(fmt.Sprintf("[%s] is required", v))
-		}
-	}
-	return nil
+	return c
 }
 
 func (c config) GetConfig() (map[string]string, error) {
-	if len(c.Keys) == 3 {
-		storage := make(map[string]string)
-		storage[c.Keys[0]] = c.Url
-		storage[c.Keys[1]] = c.Path
-		storage[c.Keys[2]] = c.Token
-		return storage, nil
+	err := c.validateConfig()
+	if err != nil {
+		return nil, err
 	}
-	return nil, errors.New("config storage's length must be equals three")
+	storage := make(map[string]string)
+	storage[vaultURL] = c.Url
+	storage[vaultPath] = c.Path
+	storage[vaultToken] = c.Token
+	return storage, nil
 }
 
 func (c config) SetConfig(confStruct interface{}, vaultResponse map[string]interface{}) (string, error) {
@@ -86,4 +71,17 @@ func (c config) SetConfig(confStruct interface{}, vaultResponse map[string]inter
 		}
 	}
 	return change, nil
+}
+
+func (c config) validateConfig() error {
+	if len(c.Url) == 0 {
+		return errors.New(fmt.Sprintf("[%s] is required", vaultURL))
+	}
+	if len(c.Path) == 0 {
+		return errors.New(fmt.Sprintf("[%s] is required", vaultPath))
+	}
+	if len(c.Token) == 0 {
+		return errors.New(fmt.Sprintf("[%s] is required", vaultToken))
+	}
+	return nil
 }

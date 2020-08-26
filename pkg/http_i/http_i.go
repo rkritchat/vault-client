@@ -1,4 +1,4 @@
-package vault_client
+package http_i
 
 import (
 	"crypto/tls"
@@ -10,7 +10,7 @@ type HttpI interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-type httpI struct{
+type httpI struct {
 	client http.Client
 }
 
@@ -20,7 +20,7 @@ func NewHttpInterface() HttpI {
 	}
 }
 
-func (i *httpI)Do(req *http.Request) (*http.Response, error){
+func (i *httpI) Do(req *http.Request) (*http.Response, error) {
 	return i.client.Do(req)
 }
 

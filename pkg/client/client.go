@@ -1,24 +1,33 @@
-package vault_client
+package client
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/rkritchat/vault-client/pkg/conf"
+	"github.com/rkritchat/vault-client/pkg/http_i"
 	"net/http"
 	"strconv"
 )
 
-type VaultClient interface {
-	LodeConfig(interface{}) (map[string]interface{}, error)
+const (
+	vaultURL    = "VAULT.URL"
+	vaultPath   = "VAULT.PATH"
+	vaultToken  = "VAULT.TOKEN"
+	xVaultToken = "X-Vault-Token"
+)
+
+type Vault interface {
+	LodeConfig() (map[string]interface{}, error)
 }
 
-type vaultClient struct {
-	conf   Config
-	client HttpI
+type vault struct {
+	conf   conf.Config
+	client http_i.HttpI
 }
 
-func NewClient(conf Config, client HttpI) VaultClient {
-	return &vaultClient{conf: conf, client: client}
+func NewVault(conf conf.Config, c http_i.HttpI) Vault {
+	return &vault{conf: conf, client: c}
 }
 
 type VaultResponse struct {
@@ -28,8 +37,8 @@ type Data struct {
 	Data interface{} `json:"data"`
 }
 
-func (c *vaultClient) LodeConfig(resultStructure interface{}) (map[string]interface{}, error) {
-	config, err := c.conf.GetConfig()
+func (v *vault) LodeConfig() (map[string]interface{}, error) {
+	config, err := v.conf.GetConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +46,7 @@ func (c *vaultClient) LodeConfig(resultStructure interface{}) (map[string]interf
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
 	request.Header.Set(xVaultToken, config[vaultToken])
 
-	result, err := c.client.Do(request)
+	result, err := v.client.Do(request)
 	if result != nil {
 		defer result.Body.Close()
 	}
@@ -51,8 +60,6 @@ func (c *vaultClient) LodeConfig(resultStructure interface{}) (map[string]interf
 	}
 
 	var resp VaultResponse
-	resp.Data.Data = resultStructure
-
 	if err := json.NewDecoder(result.Body).Decode(&resp); err != nil {
 		return nil, err
 	}
