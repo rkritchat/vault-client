@@ -18,7 +18,7 @@ const (
 )
 
 type Vault interface {
-	Load()(*vault,error)
+	Load() error
 	Reload(w http.ResponseWriter, r *http.Request)
 }
 
@@ -33,23 +33,23 @@ func NewVault(i interface{}) Vault {
 	return &vault{i: i, conf: config, client: client.NewVault(config, http_i.NewHttpInterface())}
 }
 
-func (v *vault) Load() (*vault, error) {
+func (v *vault) Load() error {
 	isDisable, _ := strconv.ParseBool(os.Getenv(vaultDisable))
 	if isDisable {
-		return nil, nil
+		return nil
 	}
 	response, err := v.client.LodeConfig()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	_, err = v.conf.SetConfig(v.i, response)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return v, nil
+	return nil
 }
 
-func (v *vault) Reload(w http.ResponseWriter, r *http.Request)  {
+func (v *vault) Reload(w http.ResponseWriter, r *http.Request) {
 	isDisable, _ := strconv.ParseBool(os.Getenv(vaultDisable))
 	if isDisable {
 		_, _ = w.Write([]byte(vaultClientIsDisable))
