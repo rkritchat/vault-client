@@ -55,8 +55,8 @@ type Configuration struct {
 }
 
 func main(){
-	_ = godotenv.Load() //read VAULT.URL | VAULT.PATH | VAULT.TOKEN
-	_, err := vault.NewVault(Configuration{}).Load()
+	_ = godotenv.Load() //read VAULT.URL | VAULT.PATH | VAULT.TOKEN from the .evn file
+	err := vault.NewVault(Configuration{}).Load()
 	if err!=nil{
 	    log.Fatal(err)
 	}
@@ -87,8 +87,9 @@ type Configuration struct {
 }
 
 func main(){
-	_ = godotenv.Load() //read VAULT.URL | VAULT.PATH | VAULT.TOKEN
-	vaultClient, err := vault.NewVault(Configuration{}).Load()
+	_ = godotenv.Load() //read VAULT.URL | VAULT.PATH | VAULT.TOKEN from the .evn file
+	vaultClient := vault.NewVault(Configuration{})
+        err := vaultClient.Load()
 	if err!=nil{
 	    log.Fatal(err)
 	}
