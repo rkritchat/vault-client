@@ -1,87 +1,88 @@
-package conf
+package vault_client
 
 import (
 	"errors"
-	"github.com/rkritchat/vault-client/pkg/constant"
+	"fmt"
 	"os"
 	"reflect"
 )
 
 const (
-	tagConf = "conf"
-	tagJson = "json"
+	tagConf       = "conf"
+	tagJson       = "json"
+	empty         = ""
+	space         = " "
+	vaultURL      = "VAULT.URL"
+	vaultPath     = "VAULT.PATH"
+	vaultToken    = "VAULT.TOKEN"
+	invalidStruct = "invalid struct, tag conf is required"
 )
 
-var (
-	//error
-	tagConfIsRequired = errors.New("tag conf is required")
-	notFoundConfig    = func(param string) error {
-		return errors.New("not found config [" + param + "] in Vault")
-	}
-	missingMandatoryConf = func(param string) error {
-		return errors.New("[" + param + "] is required")
-	}
-)
-
-type Values interface {
-	GetConfig() map[string]string
+type Config interface {
+	GetConfig() (map[string]string, error)
 	SetConfig(interface{}, map[string]interface{}) (string, error)
 }
 
-type values struct {
-	Needed []string
-	Url    string
-	Path   string
-	Token  string
+type config struct {
+	Keys  []string
+	Url   string
+	Path  string
+	Token string
 }
 
-func Default() (Values, error) {
-	c := new(values)
-	c.Needed = []string{
-		constant.VaultURL,
-		constant.VaultPath,
-		constant.VaultToken,
+func NewConfig() (Config, error) {
+	c := new(config)
+	c.Keys = []string{vaultURL, vaultPath, vaultToken}
+	err := validateConfig(c)
+	if err != nil {
+		return nil, err
 	}
 
-	for _, v := range c.Needed {
-		if os.Getenv(v) == "" {
-			return nil, missingMandatoryConf(v)
-		}
-	}
-
-	c.Url = os.Getenv(constant.VaultURL)
-	c.Path = os.Getenv(constant.VaultPath)
-	c.Token = os.Getenv(constant.VaultToken)
+	c.Url = os.Getenv(vaultURL)
+	c.Path = os.Getenv(vaultPath)
+	c.Token = os.Getenv(vaultToken)
 	return c, nil
 }
 
-func (c values) GetConfig() map[string]string {
-	storage := make(map[string]string)
-	storage[c.Needed[0]] = c.Url
-	storage[c.Needed[1]] = c.Path
-	storage[c.Needed[2]] = c.Token
-	return storage
+func validateConfig(c *config) error {
+	for _, v := range c.Keys {
+		if os.Getenv(v) == empty {
+			return errors.New(fmt.Sprintf("[%s] is required", v))
+		}
+	}
+	return nil
 }
 
-func (c values) SetConfig(confStruct interface{}, vaultResponse map[string]interface{}) (string, error) {
+func (c config) GetConfig() (map[string]string, error) {
+	if len(c.Keys) == 3 {
+		storage := make(map[string]string)
+		storage[c.Keys[0]] = c.Url
+		storage[c.Keys[1]] = c.Path
+		storage[c.Keys[2]] = c.Token
+		return storage, nil
+	}
+	return nil, errors.New("config storage's length must be equals three")
+}
+
+func (c config) SetConfig(confStruct interface{}, vaultResponse map[string]interface{}) (string, error) {
 	t := reflect.TypeOf(confStruct)
-	change := ""
+	change := empty
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		fieldConf := field.Tag.Get(tagConf)
 		filedJson := field.Tag.Get(tagJson)
 
-		if fieldConf == constant.Empty {
-			return "", tagConfIsRequired
+		if fieldConf == empty {
+			return empty, errors.New(invalidStruct)
 		}
 
 		if vaultResponse[filedJson] == nil {
-			return "", notFoundConfig(filedJson)
+			return empty, errors.New(fmt.Sprintf("not found config [%s] in Vault", filedJson))
 		}
 
 		if os.Getenv(fieldConf) != vaultResponse[filedJson].(string) {
 			_ = os.Setenv(fieldConf, vaultResponse[filedJson].(string))
-			change += filedJson + constant.Space
+			change += filedJson + space
 		}
 	}
 	return change, nil
