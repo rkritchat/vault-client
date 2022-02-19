@@ -1,4 +1,4 @@
-Vault - Client for GO language, this dependency support only Vault k/v 2.0
+Vault - Client for GO language, this dependency support only HashiCorp - Vault k/v 2.0
 
 ## Installation
 ```shell
